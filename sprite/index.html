@@ -13,11 +13,15 @@
             var screen_height;
             var bmpAnimation;
 
+
             var professor = new Image();
 
             function init() {
                 canvas = document.getElementById("myCanvas");
-
+                canvas.addEventListener('mousemove', function(e){
+                    var mousePos = getMousePos(canvas, e);
+                    console.log('Mouse Position: ' + mousePos.x + ', ' + mousePos.y);
+                }, false);
                 professor.onload = handleImageLoad;
                 professor.onerror = handleImageError;
                 professor.src = "professor.png";
@@ -31,6 +35,14 @@
 
             function handleImageLoad(e) {
                 startGame();
+            }
+
+            function getMousePos(canvas, e){
+                var rect = canvas.getBoundingClientRect();
+                return{
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
             }
 
             function startGame() {
@@ -48,7 +60,7 @@
                     // width, height & registration point of each sprite
                     frames: {width: 64, height: 64, regX: 32, regY: 32}, 
                     animations: {	
-                        walk: [27, 35, "walk", 8]
+                        walk: [27, 35, "walk", 4]
                     }
                 });
                 
@@ -121,7 +133,7 @@
         </script>
     </head>
     <body>
-        <canvas id="myCanvas" width="240" height="64" style="background-color:#607559">
+        <canvas id="myCanvas" style="background-color:#607559; width:100%;">
             Your browser doesn't support canvas. Please download IE9+ on <a href="http://ie.microsoft.com/testdrive">IE Test Drive</a> 
         </canvas>
         <button id="Start" onclick="init();">Start</button>
