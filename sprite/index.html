@@ -15,6 +15,24 @@
             var click;
             var professor = new Image();
 
+            // Add support to EaselJS to control the speed the image moves across the canvas.
+            // Pixels per second the object will move along the x and y axis
+            createjs.DisplayObject.prototype.setPPS = function(x, y) {
+                this.vX = Math.round(x / createjs.Ticker.getFPS());
+                this.vY = Math.round(y / createjs.Ticker.getFPS());
+                this.ppmsX = x / 1000;
+                this.ppmsY = y / 1000;
+            };
+
+            // Calculate the time in milliseconds required to move from the current
+            // position to the specified point using the assigned velocity (pixels/second)    
+            createjs.DisplayObject.prototype.travelTime = function(x, y) {
+                var distX = Math.abs(x - this.x);
+                var distY = Math.abs(y - this.y);
+                var duration = Math.max(distX / this.ppmsX, distY / this.ppmsY);
+                return duration;
+            };
+
             function init() {
                 canvas = document.getElementById("myCanvas");
                 canvas.addEventListener('click', function(e){
@@ -56,11 +74,12 @@
                 var spriteSheet = new createjs.SpriteSheet({
                     images: [professor], 
                     frames: {width: 64, height: 64, regX: 32, regY: 32}, 
+                    framerate: 60,
                     animations: {	
-                        walk_u: [0, 8],
-                        walk_l: [9, 17],
-                        walk_d: [18, 26],
-                        walk_r: [27, 35],
+                        walk_u: [0, 8, "walk_u"],
+                        walk_l: [9, 17, "walk_l"],
+                        walk_d: [18, 26, "walk_d"],
+                        walk_r: [27, 35, "walk_r"],
                         stand_u: [0],
                         stand_l: [9],
                         stand_d: [18],
@@ -75,69 +94,69 @@
 	            // to the center of the frame dimensions:
 	            sprite.regX = sprite.spriteSheet.frameWidth/2 | 0;
                 sprite.regY = sprite.spriteSheet.frameHeight/2 | 0;
-                sprite.x = screen_width/2;
-                sprite.y = screen_height/2;
+                sprite.x = 20;//screen_width/2;
+                sprite.y = 32;//screen_height/2;
                 sprite.direction = 'd';
+                sprite.setPPS(200, 200)
                 sprite.gotoAndStop('stand_d');                    
                
                 stage.addChild(sprite);
-
-                    
-                // we want to do some work before we update the canvas,
-                // otherwise we could use Ticker.addListener(stage);
                 createjs.Ticker.setFPS(60);
                 createjs.Ticker.addEventListener("tick", tick);
             }
 
             function tick(e) {
-                
+                // if(click){
+                //     sprite.direction = click.x < sprite.x ? 'l' : 'r';
+                //     sprite.gotoAndPlay ('walk_'+sprite.direction);
 
-                
-                if(click){
-                    var xdis = click.x - sprite.x;
-                    var ydis = click.y - sprite.y;
-                    var dis = Math.sqrt(xdis*xdis + ydis*ydis);
-                    
-                    if(dis>1){
-                        sprite.x += xdis * .15;
-                        sprite.y += ydis * .15;
-                    }
-                    
-                }
-
-                //MOVE TO CLICK POSITION
-                // createjs.Tween.get(sprite)
-                //     .to({x: click.x}, 2000)
-                //     .to({y: click.y}, 2000);
+                //     var speed = sprite.travelTime(click.x, click.y);
+                   
+                //     createjs.Tween.get(sprite)
+                //         .to({x: click.x}, speed)
+                //         .wait(100)
+                //         .call
+                //         .to({y: click.y}, speed)
+                //         .call(function() { sprite.gotoAndStop('stand_' + sprite.direction); });
+                        
+                // }
                 
                 //MOVE AROUND BOX - NO ANIMATION
-                // createjs.Tween.get(sprite, {loop: true})
-                //     .to({x: screen_width-20}, 2000)
-                //     .to({y: screen_height-32}, 2000)
-                //     .to({x: 20}, 2000)
-                //     .to({y: 32},2000);
-
+                createjs.Tween.get(sprite, {loop: true})
+                    .to({x: screen_width-20}, 2000)
+                    .to({y: screen_height-32}, 2000)
+                    .to({x: 25}, 2000)
+                    .to({y: 32},2000);
 
                 // Hit testing the screen width, otherwise our sprite would disappear
-                // if (sprite.x >= screen_width - 20) {
-                //     // We've reached the right side of our screen
-                //     sprite.gotoAndPlay("walk_d");
-                // }
-            
-                // if (sprite.x <= 20) {
-                //     // We've reached the left side of our screen
-                //     sprite.gotoAndPlay("walk_u");
-                // }
+                if (sprite.x >= screen_width - 25) {
+                    // We've reached the right side of our screen
+                    sprite.direction = 'd';
+                    sprite.gotoAndPlay("walk_d")
+                }
+                if (sprite.x <= 25) {
+                    // We've reached the left side of our screen
+                    sprite.direction = 'u';
+                    sprite.gotoAndPlay("walk_u");
+                }
+                if (sprite.y >= screen_height - 32) {
+                    // We've reached the bottom of our screen
+                    sprite.direction = 'l';
+                    sprite.gotoAndPlay("walk_l")
+                }
+                if (sprite.y <= 32) {
+                    // We've reached the top side of our screen
+                    sprite.direction = 'r';
+                    sprite.gotoAndPlay("walk_r");
+                }
+                // Moving the sprite based on the direction & the speed
+                if (sprite.direction == 90) {
+                    sprite.x += sprite.vX;
+                }
+                else {
+                    sprite.x -= sprite.vX;
+                }
 
-                // if (sprite.y >= screen_height - 32) {
-                //     // We've reached the bottom of our screen
-                //     sprite.gotoAndPlay("walk_l");
-                // }
-            
-                // if (sprite.y <= 32) {
-                //     // We've reached the top of our screen
-                //     sprite.gotoAndPlay("walk_r");
-                // }
                 stage.update(e);
             }
 
