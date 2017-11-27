@@ -105,7 +105,7 @@
                 createjs.Ticker.addEventListener("tick", tick);
             }
 
-            function tick(e) {
+            function tick() {
                 // if(click){
                 //     sprite.direction = click.x < sprite.x ? 'l' : 'r';
                 //     sprite.gotoAndPlay ('walk_'+sprite.direction);
@@ -149,15 +149,8 @@
                     sprite.direction = 'r';
                     sprite.gotoAndPlay("walk_r");
                 }
-                // Moving the sprite based on the direction & the speed
-                if (sprite.direction == 90) {
-                    sprite.x += sprite.vX;
-                }
-                else {
-                    sprite.x -= sprite.vX;
-                }
 
-                stage.update(e);
+                stage.update();
             }
 
             //called if there is an error loading the image (usually due to a 404)
