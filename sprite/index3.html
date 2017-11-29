@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Animation Project</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://code.createjs.com/easeljs-0.6.0.min.js"></script> 
+        
+        <script type="text/javascript">
+            var canvas;
+            var stage;
+            var screen_width;
+            var screen_height;
+            var bmpAnimation;
+
+            var professor = new Image();
+
+            function init() {
+                canvas = document.getElementById("myCanvas");
+
+                professor.onload = handleImageLoad;
+                professor.onerror = handleImageError;
+                professor.src = "professor.png";
+            }
+
+            function reset() {
+                stage.removeAllChildren();
+                createjs.Ticker.removeAllListeners();
+                stage.update();
+            }
+
+            function handleImageLoad(e) {
+                startGame();
+            }
+
+            function startGame() {
+                // create a new stage and point it at our canvas:
+                stage = new createjs.Stage(canvas);
+                
+                // grab canvas width and height for later calculations:
+                screen_width = canvas.width;
+                screen_height = canvas.height;
+                
+                // create spritesheet and assign the associated data.
+                var spriteSheet = new createjs.SpriteSheet({
+                    // image to use
+                    images: [professor], 
+                    // width, height & registration point of each sprite
+                    frames: {width: 64, height: 64, regX: 32, regY: 32}, 
+                    animations: {	
+                        walk_l: [9, 17, "walk_l"],
+                        walk_r: [27, 35, "walk_r"]
+                    }
+                });
+                
+                // create a BitmapAnimation instance to display and play back the sprite sheet:
+                bmpAnimation = new createjs.BitmapAnimation(spriteSheet);
+
+                // start playing the first sequence:
+                bmpAnimation.gotoAndPlay("walk_r"); 	//animate
+                
+
+                bmpAnimation.name = "monster1";
+                bmpAnimation.direction = 'r';
+                bmpAnimation.vX = 4;
+                bmpAnimation.x = 16;
+                bmpAnimation.y = 32;
+                    
+                // have each monster start at a specific frame
+                bmpAnimation.currentFrame = 0;
+                stage.addChild(bmpAnimation);
+                    
+                // we want to do some work before we update the canvas,
+                // otherwise we could use Ticker.addListener(stage);
+                createjs.Ticker.addListener(window);
+                createjs.Ticker.useRAF = true;
+                createjs.Ticker.setFPS(30);
+            }
+
+            //called if there is an error loading the image (usually due to a 404)
+            function handleImageError(e) {
+                console.log("Error Loading Image : " + e.target.src);
+            }
+
+            function tick() {
+                // Hit testing the screen width, otherwise our sprite would disappear
+                if (bmpAnimation.x >= screen_width - 16) {
+                    // We've reached the right side of our screen
+                    // We need to walk left now to go back to our initial position
+                    bmpAnimation.direction = 'left';
+                    bmpAnimation.gotoAndPlay('walk_l');
+                }
+
+                if (bmpAnimation.x < 16) {
+                    // We've reached the left side of our screen
+                    // We need to walk right now
+                    bmpAnimation.direction = 'r';
+                    bmpAnimation.gotoAndPlay('walk_r');
+                }
+
+                // Moving the sprite based on the direction & the speed
+                if (bmpAnimation.direction == 'r') {
+                    bmpAnimation.x += bmpAnimation.vX;
+                }
+                else {
+                    bmpAnimation.x -= bmpAnimation.vX;
+                }
+
+                // update the stage:
+                stage.update();
+            }
+        </script>
+
+
+
+    </head>
+    <body>
+        <canvas id="myCanvas" width="240" height="64" style="background-color:#607559">
+            Your browser doesn't support canvas. Please download IE9+ on <a href="http://ie.microsoft.com/testdrive">IE Test Drive</a> 
+        </canvas>
+        <button id="Start" onclick="init();">Start</button>
+        <button id="Reset" onclick="reset();">Reset</button>
+    </body>
+</html>

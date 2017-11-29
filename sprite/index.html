@@ -7,6 +7,8 @@
         <script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script> 
         <script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
         <script type="text/javascript">
+            /*global createjs*/
+            /*global Image*/
             var canvas;
             var stage;
             var screen_width;
@@ -41,6 +43,7 @@
                 }, false);
                 professor.onload = handleImageLoad;
                 professor.onerror = handleImageError;
+                professor.crossOrigin = "Anonymous";
                 professor.src = "professor.png";
             }
 
@@ -94,64 +97,40 @@
 	            // to the center of the frame dimensions:
 	            sprite.regX = sprite.spriteSheet.frameWidth/2 | 0;
                 sprite.regY = sprite.spriteSheet.frameHeight/2 | 0;
-                sprite.x = 20;//screen_width/2;
-                sprite.y = 32;//screen_height/2;
+                sprite.x = screen_width/2;
+                sprite.y = screen_height/2;
                 sprite.direction = 'd';
-                sprite.setPPS(200, 200)
-                sprite.gotoAndStop('stand_d');                    
+                sprite.setPPS(200, 200);
+                sprite.gotoAndStop('stand_d');
+                
+                
+
+                canvas.addEventListener('click', handleMouse);
                
                 stage.addChild(sprite);
                 createjs.Ticker.setFPS(60);
-                createjs.Ticker.addEventListener("tick", tick);
+                createjs.Ticker.addEventListener("tick", stage);
+
+            }
+            
+            function handleMouse(event){
+                if(click){
+                    var speed = sprite.travelTime(click.x, click.y);
+                    createjs.Tween.get(sprite, {override: true})
+                        .call(function(){
+                                sprite.direction = click.x < sprite.x ? 'l' : 'r';
+                                sprite.gotoAndPlay('walk_'+sprite.direction);
+                            })
+                        .to({x: click.x}, speed)
+                        .call(function(){
+                            sprite.direction = click.y < sprite.y ? 'u' : 'd';
+                            sprite.gotoAndPlay('walk_'+sprite.direction);
+                        })
+                        .to({y: click.y}, speed)
+                        .call(function() { sprite.gotoAndStop('stand_' + sprite.direction); });
+                }
             }
 
-            function tick() {
-                // if(click){
-                //     sprite.direction = click.x < sprite.x ? 'l' : 'r';
-                //     sprite.gotoAndPlay ('walk_'+sprite.direction);
-
-                //     var speed = sprite.travelTime(click.x, click.y);
-                   
-                //     createjs.Tween.get(sprite)
-                //         .to({x: click.x}, speed)
-                //         .wait(100)
-                //         .call
-                //         .to({y: click.y}, speed)
-                //         .call(function() { sprite.gotoAndStop('stand_' + sprite.direction); });
-                        
-                // }
-                
-                //MOVE AROUND BOX - NO ANIMATION
-                createjs.Tween.get(sprite, {loop: true})
-                    .to({x: screen_width-20}, 2000)
-                    .to({y: screen_height-32}, 2000)
-                    .to({x: 25}, 2000)
-                    .to({y: 32},2000);
-
-                // Hit testing the screen width, otherwise our sprite would disappear
-                if (sprite.x >= screen_width - 25) {
-                    // We've reached the right side of our screen
-                    sprite.direction = 'd';
-                    sprite.gotoAndPlay("walk_d")
-                }
-                if (sprite.x <= 25) {
-                    // We've reached the left side of our screen
-                    sprite.direction = 'u';
-                    sprite.gotoAndPlay("walk_u");
-                }
-                if (sprite.y >= screen_height - 32) {
-                    // We've reached the bottom of our screen
-                    sprite.direction = 'l';
-                    sprite.gotoAndPlay("walk_l")
-                }
-                if (sprite.y <= 32) {
-                    // We've reached the top side of our screen
-                    sprite.direction = 'r';
-                    sprite.gotoAndPlay("walk_r");
-                }
-
-                stage.update();
-            }
 
             //called if there is an error loading the image (usually due to a 404)
             function handleImageError(e) {
